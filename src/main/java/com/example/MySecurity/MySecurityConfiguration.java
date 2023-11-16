@@ -24,6 +24,10 @@ public class MySecurityConfiguration {
     		/*.loginPage("/my_login_page")*/
     		.permitAll()
     		.and()    		    
+    	// setup logout page
+    	.logout()
+    		/*.logoutUrl("/my_logout_page")*/
+    		.and()
 		.httpBasic();
 		
 		
