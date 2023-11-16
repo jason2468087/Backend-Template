@@ -21,10 +21,12 @@ public class MySecurityConfiguration {
         UserDetails user = userBuild
         	.username("user")
             .password("userPassword")
+            .roles("USER")
             .build();
         UserDetails admin = userBuild
         	.username("admin")
             .password("adminPassword")
+            .roles("ADMIN")
             .build();
         return new InMemoryUserDetailsManager(user, admin);
     }
@@ -36,6 +38,8 @@ public class MySecurityConfiguration {
 		// setup authorization of each page
 		.authorizeRequests() 
 			.requestMatchers("/welcome/**").permitAll()
+			.requestMatchers("/user/**").hasAnyRole("USER")
+			.requestMatchers("/admin/**").hasAnyRole("ADMIN")
 			.anyRequest().authenticated()
 			.and()
 		// setup login page
