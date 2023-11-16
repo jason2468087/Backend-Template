@@ -19,6 +19,11 @@ public class MySecurityConfiguration {
 			.requestMatchers("/welcome/**").permitAll()
 			.anyRequest().authenticated()
 			.and()
+		// setup login page
+    	.formLogin()
+    		/*.loginPage("/my_login_page")*/
+    		.permitAll()
+    		.and()    		    
 		.httpBasic();
 		
 		
