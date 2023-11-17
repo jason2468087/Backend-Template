@@ -1,35 +1,38 @@
 package com.example.MySecurity;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.User.UserBuilder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class MySecurityConfiguration {
+
+	@Autowired
+	private final MyUserRepository userRepository;
 	
-	// configure security properties
+	@Autowired
+	public MySecurityConfiguration(MyUserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+	
 	@Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-		UserBuilder userBuild = User.withDefaultPasswordEncoder();
-        UserDetails user = userBuild
-        	.username("user")
-            .password("userPassword")
-            .roles("USER")
-            .build();
-        UserDetails admin = userBuild
-        	.username("admin")
-            .password("adminPassword")
-            .roles("ADMIN")
-            .build();
-        return new InMemoryUserDetailsManager(user, admin);
-    }
+	public DaoAuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+		authProvider.setUserDetailsService(new MyUserDetailsService(userRepository));
+		authProvider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+		
+		return authProvider;
+	}
 	
 	// configure security properties
 	@Bean
@@ -38,8 +41,8 @@ public class MySecurityConfiguration {
 		// setup authorization of each page
 		.authorizeRequests() 
 			.requestMatchers("/welcome/**").permitAll()
-			.requestMatchers("/user/**").hasAnyRole("USER")
-			.requestMatchers("/admin/**").hasAnyRole("ADMIN")
+			.requestMatchers("/user/**").hasAuthority("USER")
+			.requestMatchers("/admin/**").hasAuthority("ADMIN")
 			.anyRequest().authenticated()
 			.and()
 		// setup login page
@@ -51,6 +54,7 @@ public class MySecurityConfiguration {
     	.logout()
     		/*.logoutUrl("/my_logout_page")*/
     		.and()
+    	.authenticationProvider(authenticationProvider())
 		.httpBasic();
 		
 		
